@@ -28,6 +28,7 @@ class ISteeringBehavior
 };
 
 // Your own SteeringBehaviors should follow here...
+
 class Seek : public ISteeringBehavior
 {
     public:
@@ -36,9 +37,35 @@ class Seek : public ISteeringBehavior
 
     virtual ~Seek() override = default;
 
-    //Seek Behaviour
     virtual SteeringOutput CalculateSteering(float DeltaT,
         ASteeringAgent& Agent) override;
+};
+
+class Wander : public Seek
+{
+    public:
+
+    Wander() = default;
+
+    virtual ~Wander() override = default;
+
+    virtual SteeringOutput CalculateSteering(float DeltaT,
+        ASteeringAgent& Agent) override;
+
+    protected:
+
+    float m_OffsetDistance { 300.0f };
+    float m_Radius { 100.0f };
+    float m_MaxAngleChange { 0.785398f };
+
+    // How often does the target change
+    float m_TargetChangeInterval { 2.0f };
+    // How far away from the target is considered "reached"
+    float m_TargetDistance { 20.0f };
+
+    // Internal
+    float m_WanderAngle { 0.0f };
+    float m_TargetChangeTimer { 0.0f };
 };
 
 class Flee : public ISteeringBehavior
@@ -49,7 +76,6 @@ class Flee : public ISteeringBehavior
 
     virtual ~Flee() override = default;
 
-    //Seek Behaviour
     virtual SteeringOutput CalculateSteering(float DeltaT,
         ASteeringAgent& Agent) override;
 };
@@ -62,7 +88,6 @@ class Arrive : public ISteeringBehavior
 
     virtual ~Arrive() override = default;
 
-    //Seek Behaviour
     virtual SteeringOutput CalculateSteering(float DeltaT,
         ASteeringAgent& Agent) override;
 };
@@ -75,7 +100,6 @@ class Pursuit : public ISteeringBehavior
 
     virtual ~Pursuit() override = default;
 
-    //Seek Behaviour
     virtual SteeringOutput CalculateSteering(float DeltaT,
         ASteeringAgent& Agent) override;
 };
@@ -88,7 +112,6 @@ class Evade : public ISteeringBehavior
 
     virtual ~Evade() override = default;
 
-    //Seek Behaviour
     virtual SteeringOutput CalculateSteering(float DeltaT,
         ASteeringAgent& Agent) override;
 };

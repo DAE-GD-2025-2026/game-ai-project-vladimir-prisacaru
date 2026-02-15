@@ -12,6 +12,47 @@ SteeringOutput Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
     return SteeringOutput { targetInput, 0.0f };
 }
 
+SteeringOutput Wander::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+{
+    auto getNewTargetPosition = [this](ASteeringAgent& Agent) -> FVector2D
+    {
+        const FVector2D circleCenter { Agent.GetPosition() +
+            FVector2D(Agent.GetActorForwardVector()) * m_OffsetDistance };
+
+        const float angle { m_WanderAngle +
+            FMath::FRandRange(-m_MaxAngleChange, m_MaxAngleChange) };
+
+        m_WanderAngle = angle;
+
+        const FVector2D offset { FVector2D(FMath::Cos(angle),
+            FMath::Sin(angle)) * m_Radius };
+
+        return FVector2D { circleCenter + offset };
+    };
+
+    bool timerReached { m_TargetChangeTimer >= m_TargetChangeInterval };
+
+    bool targetReached { (Target.Position - Agent.GetPosition()).Length() <=
+        m_TargetDistance };
+
+    if (timerReached || targetReached)
+    {
+        FTargetData newTarget { };
+
+        newTarget.Position = getNewTargetPosition(Agent);
+
+        SetTarget(newTarget);
+
+        m_TargetChangeTimer = 0.0f;
+    }
+    else
+    {
+        m_TargetChangeTimer += DeltaT;
+    }
+
+    return Seek::CalculateSteering(DeltaT, Agent);
+}
+
 SteeringOutput Flee::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
     FVector2D targetInput { (Agent.GetPosition() - Target.Position).GetSafeNormal() };

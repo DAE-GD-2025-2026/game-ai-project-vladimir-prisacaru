@@ -1,4 +1,3 @@
-
 #include "CombinedSteeringBehaviors.h"
 #include <algorithm>
 #include "../SteeringAgent.h"
@@ -12,17 +11,51 @@ BlendedSteering::BlendedSteering(const std::vector<WeightedBehavior>& WeightedBe
 SteeringOutput BlendedSteering::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
 	SteeringOutput BlendedSteering = {};
-	//TODO: Calculate the weighted average steeringbehavior
+	// TODO: Calculate the weighted average steeringbehavior
+	
+	float totalWeight { 0.0f };
+	
+	for (const auto& behaviour : WeightedBehaviors)
+	{
+		if (behaviour.Weight <= 0.0f || behaviour.pBehavior == nullptr)
+			continue;
 
-	if (Agent.GetDebugRenderingEnabled())
-		DrawDebugDirectionalArrow(
-			Agent.GetWorld(),
-			Agent.GetActorLocation(),
-			Agent.GetActorLocation() + FVector{BlendedSteering.LinearVelocity, 0} * (Agent.GetMaxLinearSpeed() * DeltaT),
-			30.f, FColor::Red
-			);
+		auto output = behaviour.pBehavior->CalculateSteering(DeltaT, Agent);
 
+		// Skip invalid outputs (e.g. flocking behaviors with no neighbors)
+		if (!output.IsValid)
+			continue;
+
+		// Proper weighted accumulation - multiply BEFORE summing
+		BlendedSteering.LinearVelocity  += output.LinearVelocity  * behaviour.Weight;
+		BlendedSteering.AngularVelocity += output.AngularVelocity * behaviour.Weight;
+		totalWeight += behaviour.Weight;
+	}
+
+	if (totalWeight > 0.0f)
+	{
+		BlendedSteering.LinearVelocity  /= totalWeight;
+		BlendedSteering.AngularVelocity /= totalWeight;
+	}
+
+	BlendedSteering.IsValid = true;
 	return BlendedSteering;
+}
+
+float* BlendedSteering::GetWeight(ISteeringBehavior* const SteeringBehavior)
+{
+	auto it = find_if(WeightedBehaviors.begin(),
+		WeightedBehaviors.end(),
+		[SteeringBehavior](const WeightedBehavior& Elem)
+		{
+			return Elem.pBehavior == SteeringBehavior;
+		}
+	);
+
+	if(it!= WeightedBehaviors.end())
+		return &it->Weight;
+	
+	return nullptr;
 }
 
 //*****************
@@ -39,6 +72,6 @@ SteeringOutput PrioritySteering::CalculateSteering(float DeltaT, ASteeringAgent&
 			break;
 	}
 
-	//If non of the behavior return a valid output, last behavior is returned
+	//If none of the behavior return a valid output, last behavior is returned
 	return Steering;
 }

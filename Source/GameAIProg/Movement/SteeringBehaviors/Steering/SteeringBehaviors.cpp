@@ -1,9 +1,7 @@
 #include "SteeringBehaviors.h"
 #include "GameAIProg/Movement/SteeringBehaviors/SteeringAgent.h"
 
-//SEEK
-//*******
-// TODO: Do the Week01 assignment :^)
+
 
 SteeringOutput Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
@@ -30,25 +28,31 @@ SteeringOutput Wander::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
         return FVector2D { circleCenter + offset };
     };
 
-    bool timerReached { m_TargetChangeTimer >= m_TargetChangeInterval };
+    //bool timerReached { m_TargetChangeTimer >= m_TargetChangeInterval };
+    //
+    //bool targetReached { (Target.Position - Agent.GetPosition()).Length() <=
+    //    m_TargetDistance };
+    //
+    //if (timerReached || targetReached)
+    //{
+    //    FTargetData newTarget { };
+    //
+    //    newTarget.Position = getNewTargetPosition(Agent);
+    //
+    //    SetTarget(newTarget);
+    //
+    //    m_TargetChangeTimer = 0.0f;
+    //}
+    //else
+    //{
+    //    m_TargetChangeTimer += DeltaT;
+    //}
 
-    bool targetReached { (Target.Position - Agent.GetPosition()).Length() <=
-        m_TargetDistance };
+    FTargetData newTarget { };
 
-    if (timerReached || targetReached)
-    {
-        FTargetData newTarget { };
+    newTarget.Position = getNewTargetPosition(Agent);
 
-        newTarget.Position = getNewTargetPosition(Agent);
-
-        SetTarget(newTarget);
-
-        m_TargetChangeTimer = 0.0f;
-    }
-    else
-    {
-        m_TargetChangeTimer += DeltaT;
-    }
+    SetTarget(newTarget);
 
     return Seek::CalculateSteering(DeltaT, Agent);
 }
@@ -69,7 +73,7 @@ SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
     const float slowRadius { 300.0f };
     const float targetRadius { 100.0f };
 
-    // Already within arrival radius — full stop
+    // Already within arrival radius ï¿½ full stop
     if (distance < targetRadius)
         return SteeringOutput { FVector2D::ZeroVector, 0.f };
 
@@ -106,6 +110,14 @@ SteeringOutput Evade::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 
     const float distance { static_cast<float>(
         (Target.Position - Agent.GetPosition()).Length()) };
+    
+    // Return early if outside evade radius
+    if (distance > EvadeRadius)
+    {
+        SteeringOutput out{};
+        out.IsValid = false;
+        return out;
+    }
 
     const float travelTime { distance / agentSpeed };
 

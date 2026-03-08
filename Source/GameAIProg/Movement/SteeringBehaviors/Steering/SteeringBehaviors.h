@@ -114,4 +114,6 @@ class Evade : public ISteeringBehavior
 
     virtual SteeringOutput CalculateSteering(float DeltaT,
         ASteeringAgent& Agent) override;
+    
+    float EvadeRadius { 600.f };
 };

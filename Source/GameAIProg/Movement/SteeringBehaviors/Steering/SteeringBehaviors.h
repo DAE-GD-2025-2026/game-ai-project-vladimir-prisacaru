@@ -90,6 +90,13 @@ class Arrive : public ISteeringBehavior
 
     virtual SteeringOutput CalculateSteering(float DeltaT,
         ASteeringAgent& Agent) override;
+    
+    void SetTargetRadius(float radius) { m_TargetRadius = radius; }
+    
+private:
+    
+    float m_SlowRadius { 300.0f };
+    float m_TargetRadius { 100.0f };
 };
 
 class Pursuit : public ISteeringBehavior

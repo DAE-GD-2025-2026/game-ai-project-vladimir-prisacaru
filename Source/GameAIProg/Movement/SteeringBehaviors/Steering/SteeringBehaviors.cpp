@@ -69,17 +69,15 @@ SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
     FVector2D targetInput { (Target.Position - Agent.GetPosition()) };
 
     const float distance { static_cast<float>(targetInput.Length()) };
-
-    const float slowRadius { 300.0f };
-    const float targetRadius { 100.0f };
+    
 
     // Already within arrival radius � full stop
-    if (distance < targetRadius)
+    if (distance < m_TargetRadius)
         return SteeringOutput { FVector2D::ZeroVector, 0.f };
 
     // Inverse lerp: TargetRadius -> 0.0, SlowRadius -> 1.0
     float speedScalar { FMath::Clamp(
-        (distance - targetRadius) / (slowRadius - targetRadius),
+        (distance - m_TargetRadius) / (m_SlowRadius - m_TargetRadius),
         0.f, 1.f
     ) };
 
